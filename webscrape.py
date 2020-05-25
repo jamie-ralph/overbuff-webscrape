@@ -23,12 +23,31 @@ browser.create_options()
 browser.get(url)
 time.sleep(5)
 
-# Now to turn this bloody code into a function
+### Define buttons
 
+# Weekly view
 this_week_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div[2]/div/div[1]/div/div[1]/div[1]")
+
+# Ranks
+all_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[1]")
+bronze_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[2]")
+silver_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[3]")
+gold_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[4]")
+plat_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[5]")
+diamond_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[6]")
+master_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[7]")
+gm_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[8]")
+
+# Platforms
+psn_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div[2]/div/div[1]/div/div[2]/div[2]")
+xbox_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div[2]/div/div[1]/div/div[2]/div[3]")
+switch_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div[2]/div/div[1]/div/div[2]/div[4]")
+
+# Move to weekly view
 
 this_week_button.click()
 
+# Define webscraper function
 def scrape_overbuff(rank):
     hero = []
     role = []
@@ -37,8 +56,9 @@ def scrape_overbuff(rank):
     tie = []
     fire = []
 
+    time.sleep(3)
 
-    for i in range(1, 32):
+    for i in range(1, 33):
         xpath_hero = '/html/body/div[1]/div[3]/div/div/div/div[2]/table/tbody/tr[' + str(i) + ']/td[2]/span/a'
         xpath_role = '/html/body/div[1]/div[3]/div/div[2]/div/div[2]/table/tbody/tr[' + str(i) + ']/td[2]/span/small'
         
@@ -69,76 +89,100 @@ def scrape_overbuff(rank):
         tie.append(t)
         fire.append(f)
         
-        time.sleep(2)
+        time.sleep(1)
 
-    All = pd.DataFrame({
+    df = pd.DataFrame({
             'Hero': hero,
             'Role': role,
             'Pick_rate': pick,
             'Win_rate': win,
             'Tie_Rate': tie,
             'On_fire': fire,
-            'Platform': "PC",
             'Rank': rank,
-            'Date': str(now)
+            'Date': str(datetime.datetime.now())
             })
     
     print("Done")
 
     time.sleep(2)
 
-    return All
+    return df
 
-# Get All PC
+#%%
+### Extract the data
 
-All = scrape_overbuff('All')
+def scrape_all_to_gm(platform):
+    # Get All PC
+    All = scrape_overbuff('All')
 
-# Bronze
+    # Bronze
+    bronze_button.click()
+    Bronze = scrape_overbuff('Bronze')
 
-bronze_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[2]")
-bronze_button.click()
-Bronze = scrape_overbuff('Bronze')
+    # Silver
+    silver_button.click()
+    Silver = scrape_overbuff('Silver')
 
-# Silver
+    # Gold
+    gold_button.click()
+    Gold = scrape_overbuff('Gold')
 
-silver_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[3]")
-silver_button.click()
-Silver = scrape_overbuff('Silver')
+    # Platinum
+    plat_button.click()
+    Platinum = scrape_overbuff('Platinum')
 
-# Gold
+    # Diamond
+    diamond_button.click()
+    Diamond = scrape_overbuff('Diamond')
 
-gold_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[4]")
-gold_button.click()
-Gold = scrape_overbuff('Gold')
+    # Master
+    master_button.click()
+    Master = scrape_overbuff('Master')
 
-# Platinum
+    # Grandmaster
+    gm_button.click()
+    Grandmaster = scrape_overbuff('Grandmaster')
 
-plat_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[5]")
-plat_button.click()
-Platinum = scrape_overbuff('Platinum')
+    # Return to all
+    all_button.click()
 
-# Diamond
+    # Combine dataframes
 
-diamond_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[6]")
-diamond_button.click()
-Diamond = scrape_overbuff('Diamond')
+    overbuff_df = pd.concat([All, Bronze, Silver, Gold, Platinum, Diamond, Master, Grandmaster])
 
-# Master
+    overbuff_df['Platform'] = platform
 
-master_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[7]")
-master_button.click()
-Master = scrape_overbuff('Master')
+    return overbuff_df
 
-# Grandmaster
+# PC
+df_pc = scrape_all_to_gm('PC')
+#%%
 
-gm_button = browser.find_element_by_xpath("/html/body/div[1]/div[3]/div/div/div/div[1]/div/div[5]/div[8]")
-gm_button.click()
-Grandmaster = scrape_overbuff('Grandmaster')
+# PSN
+psn_button.click()
+df_psn = scrape_all_to_gm('PSN')
+
+#%%
+# XBox
+xbox_button.click()
+df_xbox = scrape_all_to_gm('XBox')
+
+#%%
+# Switch
+switch_button.click()
+df_switch = scrape_all_to_gm('Switch')
 # %%
 
-df_overbuff_pc = pd.concat([All, Bronze, Silver, Gold, Platinum, Diamond, Master, Grandmaster])
+all_data = pd.concat([df_pc, df_psn, df_xbox])
 
-# %%
-df_overbuff_pc.to_csv("df_overbuff_pc.csv")
+all_data['Tie_Rate'] = all_data['Tie_Rate'].apply(lambda x: re.search( r'\d+\.*\d*', x).group(0))
+
+all_data['Pick_rate'] = all_data['Pick_rate'].apply(lambda x: re.search( r'\d+\.*\d*', x).group(0))
+
+all_data['Win_rate'] = all_data['Win_rate'].apply(lambda x: re.search( r'\d+\.*\d*', x).group(0))
+
+all_data['On_fire'] = all_data['On_fire'].apply(lambda x: re.search( r'\d+\.*\d*', str(x)).group(0))
+
+all_data.to_csv("all_data.csv")
 
 # %%
